@@ -15,20 +15,33 @@
 # inherit from common hlte
 -include device/samsung/hlte-common/BoardConfigCommon.mk
 
-TARGET_OTA_ASSERT_DEVICE := hltexx,SM-N9005,hlte,hlteskt,hltektt,SM-N900S,SM-N900K
+LOCAL_PATH := device/samsung/hlte
+
+TARGET_OTA_ASSERT_DEVICE := hltexx,SM-N9005,hlte,hlteskt,hltektt,hlteatt,hltedcm,hltekdi,hltelgt,hlteusc,hltevzw,hltetmo,hltespr,hltecan,hlteeur,SM-N900S,SM-N900K,SM-N900T,SM-N900SPR,SM-N900W8,SM-N900A,SC-01F,SCL22,SM-N900L,SM-N900S,SM-N900P,SM-N900R4,SM-N900V
 
 # Init
 TARGET_INIT_VENDOR_LIB := libinit_msm
-TARGET_LIBINIT_DEFINES_FILE := device/samsung/hlte/init/init_hlte.c
+TARGET_LIBINIT_DEFINES_FILE := device/samsung/hlte/init/init_hlte.cpp
 TARGET_UNIFIED_DEVICE := true
 
 # Partitions
 BOARD_BOOTIMAGE_PARTITION_SIZE := 11534336
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 13631488
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 15587328
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1572864000
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 28651290624
+BOARD_CACHEIMAGE_PARTITION_SIZE    := 0x00C800000
 BOARD_FLASH_BLOCK_SIZE := 131072
 TARGET_USERIMAGES_USE_EXT4 := true
+
+
+# Bluetooth
+BOARD_BLUEDROID_VENDOR_CONF := $(LOCAL_PATH)/bluetooth/vnd_hlte.txt
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(LOCAL_PATH)/bluetooth
+BOARD_BLUETOOTH_USES_HCIATTACH_PROPERTY := false
+BOARD_HAVE_BLUETOOTH_BCM := true
+
+# RIL
+BOARD_RIL_CLASS := ../../../device/samsung/hlte/ril
 
 # inherit from the proprietary version
 -include vendor/samsung/hlte/BoardConfigVendor.mk
