@@ -1,1 +1,1 @@
-add_lunch_combo tesla_hlte-userdebug
+add_lunch_combo validus_hlte-userdebug
