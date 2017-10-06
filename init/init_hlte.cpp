@@ -25,16 +25,31 @@
    IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
+#include <android-base/properties.h>
 
-#include <cutils/properties.h>
+#include "property_service.h"
 #include "vendor_init.h"
 #include "log.h"
-#include "util.h"
 
 #include "init_msm8974.h"
+
+using android::base::GetProperty;
+
+void cdma_properties(char const *operator_alpha,
+        char const *operator_numeric,
+        char const *default_network,
+        char const *cdma_sub)
+{
+    /* Dynamic CDMA Properties */
+    property_set("ro.cdma.home.operator.alpha", operator_alpha);
+    property_set("ro.cdma.home.operator.numeric", operator_numeric);
+    property_set("ro.telephony.default_network", default_network);
+    property_set("ro.telephony.default_cdma_sub", cdma_sub);
+
+    /* Static CDMA Properties */
+    property_set("ril.subscription.types", "NV,RUIM");
+    property_set("telephony.lteOnCdmaDevice", "1");
+}
 
 void gsm_properties()
 {
@@ -42,67 +57,33 @@ void gsm_properties()
     property_set("telephony.lteOnGsmDevice", "1");
 }
 
-#define ISMATCH(a, b) (!strncmp((a), (b), PROP_VALUE_MAX))
-
 void init_target_properties()
 {
-    char platform[PROP_VALUE_MAX];
-    char bootloader[PROP_VALUE_MAX];
-    char device[PROP_VALUE_MAX];
-    char devicename[PROP_VALUE_MAX];
-    int rc;
-
-    rc = property_get("ro.board.platform", platform, NULL);
-    if (!rc || !ISMATCH(platform, ANDROID_TARGET))
+    std::string platform = GetProperty("ro.board.platform", "");
+    if (platform != ANDROID_TARGET)
         return;
 
-    property_get("ro.bootloader", bootloader, NULL);
+    std::string bootloader = GetProperty("ro.bootloader", "");
 
-    if (strstr(bootloader, "N900S")) {
-        /* hlteskt */
-        property_set("ro.build.fingerprint", "samsung/hlteskt/hlteskt:5.0/LRX21V/N900SKSU0GOJ2:user/release-keys");
-        property_set("ro.build.description", "hlteskt-user 5.0 LRX21V N900SKSU0GOJ2 release-keys");
-        property_set("ro.product.model", "SM-N900S");
-        property_set("ro.product.name", "hlteskt");
-        property_set("ro.product.device", "hlteskt");
-    } else if (strstr(bootloader, "N900K")) {
-        /* hltektt */
-        property_set("ro.build.fingerprint", "samsung/hltektt/hltektt:5.0/LRX21V/N900KKKU0GOF2:user/release-keys");
-        property_set("ro.build.description", "hltektt-user 5.0 LRX21V N900KKKU0GOF2 release-keys");
-        property_set("ro.product.model", "SM-N900K");
-        property_set("ro.product.name", "hltektt");
-        property_set("ro.product.device", "hltektt");
-    } else if (strstr(bootloader, "N900W8")) {
-        /* hltecan */
-        if (strstr(bootloader, "N900W8UB")) {
-            /* hltecan/ub */
-            property_set("ro.build.fingerprint", "samsung/hlteub/hltecan:5.0/LRX21V/N900W8UBU2DOI2:user/release-keys");
-            property_set("ro.build.description", "hlteub-user 5.0 LRX21V N900W8UBU2DOI2 release-keys");
-            property_set("ro.product.name", "hlteub");
-        } else {
-            /* hltecan/vl */
-            property_set("ro.build.fingerprint", "samsung/hltevl/hltecan:5.0/LRX21V/N900W8VLU2DOH1:user/release-keys");
-            property_set("ro.build.description", "hltevl-user 5.0 LRX21V N900W8VLU2DOH1 release-keys");
-            property_set("ro.product.name", "hltevl");
-        }
-        property_set("ro.product.model", "SM-N900W8");
-        property_set("ro.product.device", "hltecan");
-    } else if (strstr(bootloader, "N900T")) {
+    if (bootloader.find("N900T") == 0) {
         /* hltetmo */
-        property_set("ro.build.fingerprint", "samsung/hltetmo/hltetmo:5.0/LRX21V/N900TUVUFOB6:user/release-keys");
-        property_set("ro.build.description", "hltetmo-user 5.0 LRX21V N900TUVUFOB6 release-keys");
-        property_set("ro.product.model", "SM-N900T");
-        property_set("ro.product.name", "hltetmo");
-        property_set("ro.product.device", "hltetmo");
+        property_override("ro.build.fingerprint", "samsung/hltetmo/hltetmo:5.0/LRX21V/N900TUVUFQD2:user/release-keys");
+        property_override("ro.build.description", "hltetmo-user 5.0 LRX21V N900TUVUFQD2 release-keys");
+        property_override("ro.product.model", "SM-N900T");
+        property_override("ro.product.device", "hltetmo");
+gsm_properties();
+    } else if (bootloader.find("N9005") == 0) {
+        /* hlte */
+        property_override("ro.build.fingerprint", "samsung/hlte/hlte:5.0/LRX21V/N9005XXUGBOK6:user/release-keys");
+        property_override("ro.build.description", "hlte-user 5.0 LRX21V N9005XXUGBOK6 release-keys");
+        property_override("ro.product.model", "SM-N9005");
+        property_override("ro.product.device", "hlte");
+gsm_properties();
     } else {
-        /* hltexx */
-        property_set("ro.build.fingerprint", "samsung/hltexx/hlte:5.0/LRX21V/N9005XXUGBOK6:user/release-keys");
-        property_set("ro.build.description", "hltexx-user 5.0 LRX21V N9005XXUGBOK6 release-keys");
-        property_set("ro.product.name", "hltexx");
-        property_set("ro.product.model", "SM-N9005");
-        property_set("ro.product.device", "hltexx");
-    }
+        gsm_properties();
+}
 
-    property_get("ro.product.device", device, NULL);
-    strlcpy(devicename, device, sizeof(devicename));
+    std::string device = GetProperty("ro.product.device", "");
+    LOG(INFO) << "Found bootloader id " << bootloader <<  " setting build properties for "
+	    << device <<  " device" << std::endl;
 }
